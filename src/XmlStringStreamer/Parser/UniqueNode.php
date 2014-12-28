@@ -185,10 +185,28 @@ class UniqueNode implements ParserInterface
             }
             return false;
         } else {
+            $uniqueNodeOpeningTagLength = strlen("<" . $this->options["uniqueNode"] . ">");
+            $alreadySearchedWorkingBlobIsTooLong = strlen($this->workingBlob) >= 2 * $uniqueNodeOpeningTagLength;
+            $haveNotYetFoundTheUniqueNodeOpeningTag = self::FIND_OPENING_TAG_ACTION === $this->nextAction;
+            if (
+                $alreadySearchedWorkingBlobIsTooLong &&
+                $haveNotYetFoundTheUniqueNodeOpeningTag
+            ) {
+                $this->flushAlreadySearchedText($uniqueNodeOpeningTagLength);
+            }
             // New chunk fetched
             $this->workingBlob .= $chunk;
             return true;
         }
+    }
+
+    /**
+     * Cut everything to the end position in the workingBlob
+     * @param  int $lengthOfTextToPreserve Length of text which will not be cut off from the end
+     */
+    protected function flushAlreadySearchedText($lengthOfTextToPreserve)
+    {
+        $this->workingBlob = substr($this->workingBlob, -$lengthOfTextToPreserve);
     }
 
     /**
